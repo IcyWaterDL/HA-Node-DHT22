@@ -32,15 +32,14 @@
 
 #include "led.h"
 #include "button.h"
-#include "DHT22.h"
 #include "SmartConfig.h"
 #include "WiFi_proc.h"
 #include "mqtt.h"
 
-#define DHT22_PIN   4
-#define BROKER 		"mqtt://192.168.0.108"
-#define USER_NAME	"nmtam"
-#define PASSWORD	"221220"
+#define ONOFF_LIGHT_PIN   	4
+#define BROKER 				"mqtt://192.168.0.108"
+#define USER_NAME			"nmtam"
+#define PASSWORD			"221220"
 
 enum system_state_t STATE = UNKNOW;
 
@@ -50,27 +49,11 @@ extern esp_mqtt_client_handle_t client;
 
 static const char *TAG = "MAIN";
 
-static const char *topic_state = "xuong/device/esp1170372/sensors";
-
-static void publish_task(void *arg) {
-
-	while (1) {
-		int ret = readDHT();
-		errorHandler(ret);
-		char msg[50] = {'\0'};
-		sprintf(msg, "{\"temperature\":%0.2f, \"humidity\":%0.2f}", getTemperature(), getHumidity());
-		if (STATE == NORMAL) esp_mqtt_client_publish(client, topic_state, msg, strlen(msg), 0, 0);
-		ESP_LOGI(TAG, "%s", msg);
-		vTaskDelay(1000/portTICK_PERIOD_MS);
-	}
-}
-
 void app_main(void)
 {
     nvs_flash_init();
     init_wifi();
     led_init();
-    setDHTgpio(DHT22_PIN);
 
 	xTaskCreate(led_status_task, "led_status_task", 1024, NULL, 200, NULL);
 	xTaskCreate(button_task, "button_task", 4096, NULL, 200, NULL);
@@ -102,7 +85,6 @@ void app_main(void)
 			ESP_LOGI(TAG, "%s" ,wifi_config.sta.password);
 			wifi_init_sta(wifi_config, WIFI_MODE_STA);
 			mqtt_app_start(BROKER, USER_NAME, PASSWORD);
-			xTaskCreate(publish_task, "publish_task", 4096, NULL, 5, NULL);
 		}
     }
 

@@ -29,9 +29,15 @@
 extern enum system_state_t STATE;
 
 static const char *TAG = "MQTT";
+static const char *topic_onoff = "xuong/device/esp1170372/sensors";
 
 esp_mqtt_client_config_t mqtt_cfg;
 esp_mqtt_client_handle_t client;
+
+static void handler_data_from_mqtt(const char *data)
+{
+
+}
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
@@ -58,6 +64,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 		break;
 	case MQTT_EVENT_DATA:
 	{
+		handler_data_from_mqtt((char *) event_data);
 		break;
 	}
 	case MQTT_EVENT_ERROR:
